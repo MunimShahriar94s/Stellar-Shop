@@ -1,6 +1,6 @@
 // Settings service for API calls
-
-const API_URL = 'http://localhost:3000/api/settings';
+const BACKEND_ORIGIN = import.meta?.env?.VITE_BACKEND_ORIGIN || '';
+const API_URL = `${BACKEND_ORIGIN}/api/settings`;
 
 // Get all settings
 export const getSettings = async () => {

@@ -71,7 +71,7 @@
     <p>Click one of the buttons below to authenticate:</p>
     
     <div class="button-container">
-      <a href="http://localhost:3000/auth/google" class="button google">Sign in with Google</a>
+      <a href="/auth/google" class="button google">Sign in with Google</a>
       <!-- Facebook OAuth removed -->
     </div>
     
@@ -93,7 +93,7 @@
     const provider = getUrlParameter('provider');
     if (provider) {
       if (provider === 'google') {
-        window.location.href = 'http://localhost:3000/auth/google';
+        window.location.href = '/auth/google';
       }
     }
   </script>

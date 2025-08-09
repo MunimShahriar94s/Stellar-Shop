@@ -1,6 +1,7 @@
 // API service for making requests to the backend
-
-const API_URL = 'http://localhost:3000/api';
+// Use VITE_BACKEND_ORIGIN in production (e.g., on Render), otherwise default to relative path
+const BACKEND_ORIGIN = import.meta?.env?.VITE_BACKEND_ORIGIN || '';
+const API_URL = `${BACKEND_ORIGIN}/api`;
 
 // Generic fetch function with error handling
 async function fetchAPI(endpoint, options = {}) {

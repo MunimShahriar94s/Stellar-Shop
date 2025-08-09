@@ -1,5 +1,6 @@
 // server/index.js
 import express from 'express';
+import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import session from 'express-session';
@@ -38,6 +39,12 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Enable CORS when a separate frontend origin is provided (e.g., Render static site)
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN;
+if (FRONTEND_ORIGIN) {
+  app.use(cors({ origin: FRONTEND_ORIGIN, credentials: true }));
+}
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -51,7 +58,7 @@ app.use(session({
   cookie: {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'lax',
+    sameSite: FRONTEND_ORIGIN ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   }
 }))

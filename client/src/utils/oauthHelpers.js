@@ -3,10 +3,13 @@
 export const googleLogin = () => {
   console.log('Google login helper called');
   try {
-    window.open('http://localhost:3000/auth/google', '_blank');
+    const backendOrigin = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BACKEND_ORIGIN) || '';
+    const url = `${backendOrigin}/auth/google`;
+    window.open(url, '_blank');
   } catch (err) {
     console.error('Error opening Google OAuth:', err);
-    window.location.href = 'http://localhost:3000/auth/google';
+    const backendOrigin = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BACKEND_ORIGIN) || '';
+    window.location.href = `${backendOrigin}/auth/google`;
   }
 };
 

@@ -1,4 +1,5 @@
-const API_BASE_URL = '/api/categories';
+const BACKEND_ORIGIN = import.meta?.env?.VITE_BACKEND_ORIGIN || '';
+const API_BASE_URL = `${BACKEND_ORIGIN}/api/categories`;
 
 // Get all categories (public)
 export const getAllCategories = async () => {
