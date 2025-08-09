@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAuth Iframe</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 10px;
+      border-radius: 4px;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .google {
+      background-color: #ea4335;
+    }
+    /* Facebook OAuth removed */
+  </style>
+</head>
+<body>
+  <h2>OAuth Login</h2>
+  <a href="http://localhost:3000/auth/google" class="button google" target="_top">Login with Google</a>
+  <!-- Facebook OAuth removed -->
+  
+  <script>
+    // Add event listeners to buttons
+    document.querySelectorAll('.button').forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const url = this.getAttribute('href');
+        window.top.location.href = url;
+      });
+    });
+  </script>
+</body>
+</html>

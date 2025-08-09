@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification - StellarShop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+        
+        .message {
+            font-size: 1.1rem;
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .error {
+            color: #e53e3e;
+            background: #fed7d7;
+            border: 1px solid #feb2b2;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .success {
+            color: #38a169;
+            background: #c6f6d5;
+            border: 1px solid #9ae6b4;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading">
+            <div class="loading"></div>
+            <div class="title">Verifying your email...</div>
+            <div class="message">Please wait while we verify your email address.</div>
+        </div>
+        
+        <div id="success" style="display: none;">
+            <div class="icon">🎉</div>
+            <div class="title">Email Verified!</div>
+            <div class="success" id="success-message"></div>
+            <div class="message">
+                Welcome to StellarShop! Your email has been successfully verified. 
+                Redirecting you to the home page...
+            </div>
+            <div id="auto-login-section">
+                <div class="loading"></div>
+                <p style="margin-top: 1rem; color: #38a169;">🔄 Logging you in and redirecting...</p>
+            </div>
+        </div>
+        
+        <div id="error" style="display: none;">
+            <div class="icon">❌</div>
+            <div class="title">Verification Failed</div>
+            <div class="error" id="error-message"></div>
+            <div class="message">
+                The verification link may be invalid or expired. 
+                Redirecting you to the login page...
+            </div>
+            <div class="loading"></div>
+            <p style="margin-top: 1rem; color: #e53e3e;">🔄 Redirecting to login...</p>
+        </div>
+    </div>
+
+    <script>
+        console.log('Email verification page loaded');
+        
+        // Log preservation system
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logs = [];
+        
+        console.log = function(...args) {
+            logs.push({ type: 'log', timestamp: new Date().toISOString(), message: args.join(' ') });
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            logs.push({ type: 'error', timestamp: new Date().toISOString(), message: args.join(' ') });
+            originalError.apply(console, args);
+        };
+        
+        // Store logs in localStorage before redirect
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('emailVerificationLogs', JSON.stringify(logs));
+        });
+        
+        // Get token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        if (!token) {
+            showError('No verification token provided');
+        } else {
+            verifyEmail(token);
+        }
+        
+        async function verifyEmail(token) {
+            try {
+                const response = await fetch(`/email-verification/verify/${token}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await autoLogin(data.token, data.user, data.mergeCart);
+                } else {
+                    showError(data.message || 'Verification failed');
+                }
+            } catch (error) {
+                console.error('Email verification - API call error:', error);
+                showError('Network error during verification');
+            }
+        }
+        
+        async function autoLogin(token, user, shouldMergeCart) {
+            try {
+                // Store token in localStorage
+                localStorage.setItem('token', token);
+                
+                // Store user data
+                localStorage.setItem('user', JSON.stringify(user));
+                
+                // Trigger auth context update by dispatching a custom event
+                window.dispatchEvent(new CustomEvent('authStateChanged', {
+                    detail: { token, user }
+                }));
+                
+                // Cart merging is now handled server-side during email verification
+                
+                // Redirect immediately after successful login
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000); // Reduced from 5000ms to 1000ms (1 second)
+                
+            } catch (error) {
+                console.error('Auto-login error:', error);
+                showError('Auto-login failed. Please log in manually.');
+            }
+        }
+        
+        function showSuccess(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('success').style.display = 'block';
+            document.getElementById('success-message').textContent = message;
+        }
+        
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error-message').textContent = message;
+            
+            // Auto-redirect to login page after 3 seconds
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 3000);
+        }
+        
+
+    </script>
+</body>
+</html> 

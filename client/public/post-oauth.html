@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POST OAuth</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .google {
+      background-color: #ea4335;
+      color: white;
+    }
+    /* Facebook OAuth removed */
+  </style>
+</head>
+<body>
+  <h1>POST OAuth Login</h1>
+  <p>This page uses POST method for OAuth:</p>
+  
+  <form id="googleForm" method="post" action="http://localhost:3000/auth/google">
+    <input type="hidden" name="_csrf" value="none">
+    <button type="submit" class="button google">Login with Google (POST)</button>
+  </form>
+  
+  <!-- Facebook OAuth removed -->
+  
+  <script>
+    // Alternative approach using fetch
+    document.getElementById('googleForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      try {
+        const response = await fetch('http://localhost:3000/auth/google', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        });
+        
+        if (response.redirected) {
+          window.location.href = response.url;
+        } else {
+          console.log('Response:', response);
+          alert('Check console for response details');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error: ' + error.message);
+      }
+    });
+  </script>
+</body>
+</html>

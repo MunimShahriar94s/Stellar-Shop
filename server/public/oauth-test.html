@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAuth Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .oauth-button {
+      padding: 10px;
+      text-align: center;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .google {
+      background-color: #fff;
+      color: #757575;
+      border: 1px solid #ddd;
+    }
+    /* Facebook OAuth removed */
+    .form-container {
+      margin-top: 20px;
+      border-top: 1px solid #ddd;
+      padding-top: 20px;
+    }
+    form {
+      margin-bottom: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>OAuth Test Page (Static HTML)</h1>
+  
+  <div class="button-container">
+    <a href="http://localhost:3000/auth/google" class="oauth-button google">Sign in with Google</a>
+  </div>
+  
+  <div class="form-container">
+    <form action="http://localhost:3000/auth/google" method="get">
+      <button type="submit">Google Auth (Form Submit)</button>
+    </form>
+    
+    <!-- Facebook OAuth removed -->
+  </div>
+  
+  <script>
+    // Add direct JavaScript links
+    document.write('<div style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px;">');
+    document.write('<button onclick="window.location.href=\'http://localhost:3000/auth/google\'">Google (JS Redirect)</button>');
+    document.write('</div>');
+  </script>
+</body>
+</html>
