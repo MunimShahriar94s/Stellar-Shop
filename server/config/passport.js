@@ -3,7 +3,7 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import pool from '../db.js';
+import db from '../db.js';
 
 // Configure passport
 export default function configurePassport() {
@@ -16,7 +16,7 @@ export default function configurePassport() {
   // Deserialize user from session
   passport.deserializeUser(async (id, done) => {
     try {
-      const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+      const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
       if (result.rows.length > 0) {
         done(null, result.rows[0]);
       } else {
@@ -33,7 +33,7 @@ export default function configurePassport() {
     async (email, password, done) => {
       try {
         // Find user by email (any provider)
-        const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
         
         if (result.rows.length === 0) {
           return done(null, false, { message: 'Incorrect email or password' });
@@ -129,7 +129,7 @@ export default function configurePassport() {
       
       
       // Check if user exists with ANY provider using this email
-      const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+      const existingUser = await db.query('SELECT * FROM users WHERE email = $1', [email]);
       
       if (existingUser.rows.length > 0) {
         const user = existingUser.rows[0];
@@ -164,7 +164,7 @@ export default function configurePassport() {
         
         if (updates.length > 0) {
           updateValues.push(user.id);
-          await pool.query(
+          await db.query(
             `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramCount}`,
             updateValues
           );
@@ -185,7 +185,7 @@ export default function configurePassport() {
       const securePlaceholder = crypto.randomBytes(32).toString('hex');
       const hashedPassword = securePlaceholder; // Store as-is since it's already random and secure
       
-      const newUser = await pool.query(
+      const newUser = await db.query(
         'INSERT INTO users (name, email, password, provider, role, picture, email_verified) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
         [name, email, hashedPassword, 'google', 'user', picture, true]
       );

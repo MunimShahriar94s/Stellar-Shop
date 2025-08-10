@@ -1,7 +1,7 @@
 import express from 'express';
 import { verifyToken, isAdmin } from '../middleware/auth.js';
 import db from '../db.js';
-import multer from 'multer';
+import { uploadCategory } from '../middleware/upload.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -29,39 +29,6 @@ const getImageUrl = (imagePath) => {
   // In development, return relative path
   return imagePath;
 };
-
-// Configure multer for image uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = 'uploads/categories';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'category-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  },
-  fileFilter: function (req, file, cb) {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'));
-    }
-  }
-});
 
 // Get all categories (public)
 router.get('/', async (req, res) => {
@@ -136,7 +103,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new category
-router.post('/', verifyToken, isAdmin, upload.single('image'), async (req, res) => {
+router.post('/', verifyToken, isAdmin, uploadCategory.single('image'), async (req, res) => {
   try {
     const { name, description, is_active, sort_order } = req.body;
     
@@ -174,7 +141,7 @@ router.post('/', verifyToken, isAdmin, upload.single('image'), async (req, res) 
 });
 
 // Update category
-router.put('/:id', verifyToken, isAdmin, upload.single('image'), async (req, res) => {
+router.put('/:id', verifyToken, isAdmin, uploadCategory.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, is_active, sort_order } = req.body;

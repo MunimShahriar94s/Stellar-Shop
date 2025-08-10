@@ -20,7 +20,7 @@ import settingsRoutes from './routes/settings.js';
 import categoriesRoutes from './routes/categories.js';
 import productsRoutes from './routes/products.js';
 
-import upload from './middleware/upload.js';
+import { uploadProduct, uploadCategory } from './middleware/upload.js';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import { verifyToken, isAdmin } from './middleware/auth.js';
@@ -67,25 +67,13 @@ app.use(passport.initialize());
 app.use(passport.session());
 configurePassport();
 
-// Upload image
-app.post('/admin/upload', verifyToken, isAdmin, upload.single('image'), (req, res) => {
+// Upload product image
+app.post('/admin/upload', verifyToken, isAdmin, uploadProduct.single('image'), (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 
-    const uploadDir = path.join(__dirname, 'uploads/products');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    const ext = path.extname(req.file.originalname);
-    const filename = `product-${uuidv4()}${ext}`;
-    const filePath = path.join(uploadDir, filename);
-
-    fs.copyFileSync(req.file.path, filePath);
-    fs.unlinkSync(req.file.path);
-
-    // Create relative path for storage
-    const relativePath = `/uploads/products/${filename}`;
+    // File is already saved to uploads/products by multer
+    const relativePath = `/uploads/products/${req.file.filename}`;
     
     // Return absolute URL in production, relative path in development
     let imageUrl = relativePath;
@@ -94,8 +82,10 @@ app.post('/admin/upload', verifyToken, isAdmin, upload.single('image'), (req, re
       imageUrl = `${baseUrl}${relativePath}`;
     }
     
+    console.log('✅ Product image uploaded:', imageUrl);
     res.json({ imageUrl });
   } catch (err) {
+    console.error('❌ Upload error:', err);
     res.status(500).json({ error: 'Failed to upload image', details: err.message });
   }
 });
@@ -249,6 +239,75 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// Comprehensive health check endpoint
+app.get('/api/health/detailed', async (req, res) => {
+  try {
+    // Test database connection
+    const dbTest = await db.query('SELECT NOW() as current_time');
+    
+    // Test environment variables
+    const envCheck = {
+      NODE_ENV: process.env.NODE_ENV,
+      PORT: process.env.PORT,
+      DB_HOST: process.env.DB_HOST ? 'set' : 'missing',
+      DB_NAME: process.env.DB_NAME ? 'set' : 'missing',
+      DB_USER: process.env.DB_USER ? 'set' : 'missing',
+      SERVER_URL: process.env.SERVER_URL,
+      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ? 'set' : 'missing'
+    };
+    
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: {
+        connected: true,
+        currentTime: dbTest.rows[0].current_time
+      },
+      environment: envCheck,
+      server: {
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        nodeVersion: process.version
+      }
+    });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    res.status(500).json({
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Debug endpoint to list uploads directory
+app.get('/api/debug/uploads', (req, res) => {
+  try {
+    const productsDir = path.join(__dirname, 'uploads/products');
+    const categoriesDir = path.join(__dirname, 'uploads/categories');
+    
+    let products = [];
+    let categories = [];
+    
+    if (fs.existsSync(productsDir)) {
+      products = fs.readdirSync(productsDir);
+    }
+    
+    if (fs.existsSync(categoriesDir)) {
+      categories = fs.readdirSync(categoriesDir);
+    }
+    
+    res.json({
+      products: products,
+      categories: categories,
+      productsDir: productsDir,
+      categoriesDir: categoriesDir
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Debug endpoint to test image URL conversion
 app.get('/debug/test-image-urls', (req, res) => {
   const testUrls = [
@@ -303,13 +362,31 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: err.message || 'Server error' });
 });
 
+// Global error handlers
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 app.listen(PORT, async () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Server URL: ${process.env.SERVER_URL || 'http://localhost:3000'}`);
   
   // Check and fix database sequences on startup
   try {
+    console.log('🔧 Running database startup checks...');
     await resetDatabaseState(); // This includes checking and fixing sequences
+    console.log('✅ Database startup checks completed');
   } catch (err) {
-    console.error('Error during database startup checks:', err);
+    console.error('❌ Error during database startup checks:', err);
+    // Don't crash the server, but log the error
   }
+  
+  console.log('🎉 Server startup completed successfully!');
 });
