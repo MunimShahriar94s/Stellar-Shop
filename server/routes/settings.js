@@ -4,6 +4,45 @@ import { verifyToken, isAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Helper function to convert relative image URLs to absolute URLs in production
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  
+  // If it's already an absolute URL, return as is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  // In production, prepend the server URL
+  if (process.env.NODE_ENV === 'production') {
+    const baseUrl = process.env.SERVER_URL || 'https://stellar-shop-fniz.onrender.com';
+    return `${baseUrl}${imagePath}`;
+  }
+  
+  // In development, return relative path
+  return imagePath;
+};
+
+// Helper function to process settings and convert image URLs
+const processSettings = (settings) => {
+  const processed = {};
+  
+  for (const [category, categorySettings] of Object.entries(settings)) {
+    processed[category] = {};
+    
+    for (const [key, value] of Object.entries(categorySettings)) {
+      // Process image URLs for logo and favicon
+      if ((key === 'logo' || key === 'favicon') && typeof value === 'string') {
+        processed[category][key] = getImageUrl(value);
+      } else {
+        processed[category][key] = value;
+      }
+    }
+  }
+  
+  return processed;
+};
+
 // Get all settings
 router.get('/', async (req, res) => {
   try {
@@ -33,7 +72,10 @@ router.get('/', async (req, res) => {
       settings[row.category][row.key_name] = value;
     });
     
-    res.json(settings);
+    // Process image URLs
+    const processedSettings = processSettings(settings);
+    
+    res.json(processedSettings);
   } catch (error) {
     console.error('Error fetching settings:', error);
     res.status(500).json({ error: 'Failed to fetch settings' });
@@ -123,7 +165,17 @@ router.get('/:category', async (req, res) => {
       categorySettings[row.key_name] = value;
     });
     
-    res.json(categorySettings);
+    // Process image URLs for this category
+    const processedSettings = {};
+    for (const [key, value] of Object.entries(categorySettings)) {
+      if ((key === 'logo' || key === 'favicon') && typeof value === 'string') {
+        processedSettings[key] = getImageUrl(value);
+      } else {
+        processedSettings[key] = value;
+      }
+    }
+    
+    res.json(processedSettings);
   } catch (error) {
     console.error('Error fetching category settings:', error);
     res.status(500).json({ error: 'Failed to fetch category settings' });

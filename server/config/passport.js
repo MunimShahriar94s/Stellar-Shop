@@ -71,10 +71,18 @@ export default function configurePassport() {
 
   // Google OAuth Strategy
   console.log('Setting up Google OAuth strategy with client ID:', process.env.GOOGLE_CLIENT_ID);
+  
+  // Determine callback URL - use HTTPS in production
+  const isProduction = process.env.NODE_ENV === 'production';
+  const baseUrl = process.env.SERVER_URL || (isProduction ? 'https://stellar-shop-fniz.onrender.com' : 'http://localhost:3000');
+  const callbackURL = process.env.GOOGLE_CALLBACK_URL || `${baseUrl}/auth/google/callback`;
+  
+  console.log('Google OAuth callback URL:', callbackURL);
+  
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL || '/auth/google/callback'
+    callbackURL: callbackURL
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       const email = profile.emails[0].value;

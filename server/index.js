@@ -240,6 +240,44 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// Debug endpoint to test image URL conversion
+app.get('/debug/test-image-urls', (req, res) => {
+  const testUrls = [
+    '/uploads/products/test.jpg',
+    'https://example.com/image.jpg',
+    null,
+    '/images/logo.png'
+  ];
+  
+  const isProduction = process.env.NODE_ENV === 'production';
+  const baseUrl = process.env.SERVER_URL || (isProduction ? 'https://stellar-shop-fniz.onrender.com' : 'http://localhost:3000');
+  
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    
+    if (isProduction) {
+      return `${baseUrl}${imagePath}`;
+    }
+    
+    return imagePath;
+  };
+  
+  const processedUrls = testUrls.map(url => ({
+    original: url,
+    processed: getImageUrl(url)
+  }));
+  
+  res.json({
+    environment: process.env.NODE_ENV || 'development',
+    baseUrl,
+    testUrls: processedUrls
+  });
+});
+
 // Frontend routes
 ['/products', '/product/:id', '/contact', '/cart', '/orders', '/order/:id', '/login', '/signup'].forEach(route => {
   app.get(route, (req, res) => {

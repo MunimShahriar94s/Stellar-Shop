@@ -11,6 +11,33 @@ const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
+// Helper function to convert relative image URLs to absolute URLs in production
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  
+  // If it's already an absolute URL, return as is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  // In production, prepend the server URL
+  if (process.env.NODE_ENV === 'production') {
+    const baseUrl = process.env.SERVER_URL || 'https://stellar-shop-fniz.onrender.com';
+    return `${baseUrl}${imagePath}`;
+  }
+  
+  // In development, return relative path
+  return imagePath;
+};
+
+// Helper function to process product data
+const processProduct = (product) => ({
+  ...product,
+  price: parseFloat(product.price),
+  category: product.category_name || 'Uncategorized',
+  image: getImageUrl(product.image)
+});
+
 // Configure multer for image uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -56,11 +83,7 @@ router.get('/', async (req, res) => {
       ORDER BY p.id DESC
     `);
     
-    const products = result.rows.map(product => ({
-      ...product,
-      price: parseFloat(product.price),
-      category: product.category_name || 'Uncategorized'
-    }));
+    const products = result.rows.map(product => processProduct(product));
     
     res.json(products);
   } catch (err) {
@@ -80,11 +103,7 @@ router.get('/admin', verifyToken, isAdmin, async (req, res) => {
       ORDER BY p.id DESC
     `);
     
-    const products = result.rows.map(product => ({
-      ...product,
-      price: parseFloat(product.price),
-      category: product.category_name || 'Uncategorized'
-    }));
+    const products = result.rows.map(product => processProduct(product));
     
     res.json(products);
   } catch (err) {
@@ -109,11 +128,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
     
-    const product = {
-      ...result.rows[0],
-      price: parseFloat(result.rows[0].price),
-      category: result.rows[0].category_name || 'Uncategorized'
-    };
+    const product = processProduct(result.rows[0]);
     
     res.json(product);
   } catch (err) {
@@ -133,7 +148,7 @@ router.post('/', verifyToken, isAdmin, async (req, res) => {
       RETURNING *
     `, [title, description, price, category_id || null, image || null, stock || 0]);
     
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(processProduct(result.rows[0]));
   } catch (err) {
     console.error('Error creating product:', err);
     res.status(500).json({ error: 'Failed to create product' });
@@ -164,7 +179,7 @@ router.put('/:id', verifyToken, isAdmin, async (req, res) => {
       RETURNING *
     `, [title, description, price, category_id || null, image, stock, id]);
     
-    res.json(result.rows[0]);
+    res.json(processProduct(result.rows[0]));
   } catch (err) {
     console.error('Error updating product:', err);
     res.status(500).json({ error: 'Failed to update product' });

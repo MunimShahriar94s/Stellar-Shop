@@ -11,6 +11,25 @@ const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
+// Helper function to convert relative image URLs to absolute URLs in production
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  
+  // If it's already an absolute URL, return as is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  // In production, prepend the server URL
+  if (process.env.NODE_ENV === 'production') {
+    const baseUrl = process.env.SERVER_URL || 'https://stellar-shop-fniz.onrender.com';
+    return `${baseUrl}${imagePath}`;
+  }
+  
+  // In development, return relative path
+  return imagePath;
+};
+
 // Configure multer for image uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -54,7 +73,13 @@ router.get('/', async (req, res) => {
       WHERE is_active = true 
       ORDER BY sort_order ASC, name ASC
     `);
-    res.json(result.rows);
+    
+    const categories = result.rows.map(category => ({
+      ...category,
+      image: getImageUrl(category.image)
+    }));
+    
+    res.json(categories);
   } catch (err) {
     console.error('Error fetching categories:', err);
     res.status(500).json({ error: 'Failed to fetch categories' });
@@ -70,7 +95,13 @@ router.get('/admin', verifyToken, isAdmin, async (req, res) => {
       FROM categories 
       ORDER BY sort_order ASC, name ASC
     `);
-    res.json(result.rows);
+    
+    const categories = result.rows.map(category => ({
+      ...category,
+      image: getImageUrl(category.image)
+    }));
+    
+    res.json(categories);
   } catch (err) {
     console.error('Error fetching categories:', err);
     res.status(500).json({ error: 'Failed to fetch categories' });
@@ -92,7 +123,12 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Category not found' });
     }
     
-    res.json(result.rows[0]);
+    const category = {
+      ...result.rows[0],
+      image: getImageUrl(result.rows[0].image)
+    };
+    
+    res.json(category);
   } catch (err) {
     console.error('Error fetching category:', err);
     res.status(500).json({ error: 'Failed to fetch category' });
@@ -118,7 +154,12 @@ router.post('/', verifyToken, isAdmin, upload.single('image'), async (req, res) 
       RETURNING *
     `, [name, description, image, is_active === 'true', sort_order || 0]);
     
-    res.status(201).json(result.rows[0]);
+    const category = {
+      ...result.rows[0],
+      image: getImageUrl(result.rows[0].image)
+    };
+    
+    res.status(201).json(category);
   } catch (err) {
     console.error('Error creating category:', err);
     res.status(500).json({ error: 'Failed to create category' });
@@ -171,7 +212,12 @@ router.put('/:id', verifyToken, isAdmin, upload.single('image'), async (req, res
       RETURNING *
     `, [name, description, image, is_active === 'true', sort_order, id]);
     
-    res.json(result.rows[0]);
+    const category = {
+      ...result.rows[0],
+      image: getImageUrl(result.rows[0].image)
+    };
+    
+    res.json(category);
   } catch (err) {
     console.error('Error updating category:', err);
     res.status(500).json({ error: 'Failed to update category' });
