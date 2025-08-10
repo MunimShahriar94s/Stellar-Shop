@@ -146,7 +146,14 @@ router.post('/', verifyToken, isAdmin, upload.single('image'), async (req, res) 
       return res.status(400).json({ error: 'Category name already exists' });
     }
     
-    const image = req.file ? `/uploads/categories/${req.file.filename}` : null;
+    // Process image URL - store absolute URL in production
+    let image = null;
+    if (req.file) {
+      const relativePath = `/uploads/categories/${req.file.filename}`;
+      image = process.env.NODE_ENV === 'production' 
+        ? `${process.env.SERVER_URL || 'https://stellar-shop-fniz.onrender.com'}${relativePath}`
+        : relativePath;
+    }
     
     const result = await db.query(`
       INSERT INTO categories (name, description, image, is_active, sort_order)
@@ -197,7 +204,11 @@ router.put('/:id', verifyToken, isAdmin, upload.single('image'), async (req, res
           fs.unlinkSync(oldImagePath);
         }
       }
-      image = `/uploads/categories/${req.file.filename}`;
+      // Store absolute URL in production
+      const relativePath = `/uploads/categories/${req.file.filename}`;
+      image = process.env.NODE_ENV === 'production' 
+        ? `${process.env.SERVER_URL || 'https://stellar-shop-fniz.onrender.com'}${relativePath}`
+        : relativePath;
     }
     
     const result = await db.query(`

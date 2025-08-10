@@ -84,7 +84,16 @@ app.post('/admin/upload', verifyToken, isAdmin, upload.single('image'), (req, re
     fs.copyFileSync(req.file.path, filePath);
     fs.unlinkSync(req.file.path);
 
-    const imageUrl = `/uploads/products/${filename}`;
+    // Create relative path for storage
+    const relativePath = `/uploads/products/${filename}`;
+    
+    // Return absolute URL in production, relative path in development
+    let imageUrl = relativePath;
+    if (process.env.NODE_ENV === 'production') {
+      const baseUrl = process.env.SERVER_URL || 'https://stellar-shop-fniz.onrender.com';
+      imageUrl = `${baseUrl}${relativePath}`;
+    }
+    
     res.json({ imageUrl });
   } catch (err) {
     res.status(500).json({ error: 'Failed to upload image', details: err.message });
