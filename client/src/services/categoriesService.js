@@ -103,6 +103,8 @@ export const updateCategory = async (id, categoryData) => {
     const token = localStorage.getItem('token');
     const formData = new FormData();
     
+    console.log('🔄 Updating category:', { id, categoryData });
+    
     // Add text fields
     if (categoryData.name) formData.append('name', categoryData.name);
     if (categoryData.description !== undefined) formData.append('description', categoryData.description);
@@ -111,7 +113,15 @@ export const updateCategory = async (id, categoryData) => {
     
     // Add image if provided
     if (categoryData.image && categoryData.image instanceof File) {
+      console.log('📸 Adding image to form data:', categoryData.image.name);
       formData.append('image', categoryData.image);
+    } else if (categoryData.image) {
+      console.log('📸 Image data type:', typeof categoryData.image, categoryData.image);
+    }
+    
+    console.log('📋 Form data entries:');
+    for (let [key, value] of formData.entries()) {
+      console.log(`  ${key}:`, value instanceof File ? `File(${value.name})` : value);
     }
     
     const response = await fetch(`${API_BASE_URL}/${id}`, {
@@ -128,9 +138,11 @@ export const updateCategory = async (id, categoryData) => {
       throw new Error(errorData.error || 'Failed to update category');
     }
     
-    return await response.json();
+    const result = await response.json();
+    console.log('✅ Category updated successfully:', result);
+    return result;
   } catch (error) {
-    console.error('Error updating category:', error);
+    console.error('❌ Error updating category:', error);
     throw error;
   }
 };

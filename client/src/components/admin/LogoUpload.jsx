@@ -132,7 +132,7 @@ const LoadingSpinner = styled.div`
   }
 `;
 
-const LogoUpload = ({ type, currentValue, onUpload, onRemove }) => {
+const LogoUpload = ({ type, currentValue, onUpload, onRemove, uploadMode = 'url' }) => {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState(null);
   const [error, setError] = useState(null);
@@ -177,28 +177,32 @@ const LogoUpload = ({ type, currentValue, onUpload, onRemove }) => {
     setError(null);
     
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const response = await fetch('/admin/upload', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const data = await response.json();
-      
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => setPreview(e.target.result);
       reader.readAsDataURL(file);
       
-      // Update settings
-      onUpload(data.imageUrl);
+      if (uploadMode === 'file') {
+        // For categories, just pass the file object (upload happens during form submission)
+        onUpload(file);
+      } else {
+        // For settings, upload immediately and get URL
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await fetch('/admin/upload', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Upload failed');
+        }
+
+        const data = await response.json();
+        onUpload(data.imageUrl);
+      }
     } catch (error) {
       console.error('Upload error:', error);
       setError(`Failed to upload ${type}. Please try again.`);

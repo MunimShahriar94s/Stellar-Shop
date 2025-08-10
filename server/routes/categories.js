@@ -146,16 +146,34 @@ router.put('/:id', verifyToken, isAdmin, uploadCategory.single('image'), async (
     const { id } = req.params;
     const { name, description, is_active, sort_order } = req.body;
     
+    console.log('🔄 Category update request:', {
+      id,
+      name,
+      description,
+      is_active,
+      sort_order,
+      hasFile: !!req.file,
+      fileInfo: req.file ? {
+        filename: req.file.filename,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype
+      } : null
+    });
+    
     // Check if category exists
     const existingCategory = await db.query('SELECT id, image FROM categories WHERE id = $1', [id]);
     if (existingCategory.rows.length === 0) {
+      console.log('❌ Category not found:', id);
       return res.status(404).json({ error: 'Category not found' });
     }
+    
+    console.log('📋 Existing category image:', existingCategory.rows[0].image);
     
     // Check if new name conflicts with existing category (excluding current category)
     if (name) {
       const nameConflict = await db.query('SELECT id FROM categories WHERE name = $1 AND id != $2', [name, id]);
       if (nameConflict.rows.length > 0) {
+        console.log('❌ Name conflict:', name);
         return res.status(400).json({ error: 'Category name already exists' });
       }
     }
@@ -164,19 +182,33 @@ router.put('/:id', verifyToken, isAdmin, uploadCategory.single('image'), async (
     
     // If new image uploaded, delete old image and use new one
     if (req.file) {
+      console.log('📸 New image uploaded:', req.file.filename);
+      
       // Delete old image if it exists
       if (existingCategory.rows[0].image) {
         const oldImagePath = path.join(__dirname, '..', existingCategory.rows[0].image);
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath);
+          console.log('🗑️ Deleted old image:', oldImagePath);
         }
       }
+      
       // Store absolute URL in production
       const relativePath = `/uploads/categories/${req.file.filename}`;
       image = process.env.NODE_ENV === 'production' 
         ? `${process.env.SERVER_URL || 'https://stellar-shop-fniz.onrender.com'}${relativePath}`
         : relativePath;
+      
+      console.log('💾 New image path:', image);
     }
+    
+    console.log('🔄 Updating category with values:', {
+      name: name || 'unchanged',
+      description: description || 'unchanged', 
+      image: image,
+      is_active: is_active === 'true',
+      sort_order: sort_order || 'unchanged'
+    });
     
     const result = await db.query(`
       UPDATE categories 
@@ -190,6 +222,8 @@ router.put('/:id', verifyToken, isAdmin, uploadCategory.single('image'), async (
       RETURNING *
     `, [name, description, image, is_active === 'true', sort_order, id]);
     
+    console.log('✅ Category updated successfully:', result.rows[0]);
+    
     const category = {
       ...result.rows[0],
       image: getImageUrl(result.rows[0].image)
@@ -197,7 +231,7 @@ router.put('/:id', verifyToken, isAdmin, uploadCategory.single('image'), async (
     
     res.json(category);
   } catch (err) {
-    console.error('Error updating category:', err);
+    console.error('❌ Error updating category:', err);
     res.status(500).json({ error: 'Failed to update category' });
   }
 });

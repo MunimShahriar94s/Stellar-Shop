@@ -731,10 +731,13 @@ const Categories = () => {
     }));
   };
 
-  const handleImageUpload = (url) => {
-    // For now, we'll handle image upload separately
-    // You might want to implement a proper image upload system
-    console.log('Image uploaded:', url);
+  const handleImageUpload = (imageData) => {
+    console.log('Image uploaded:', imageData);
+    // Update the form data with the new image (File object for categories)
+    setFormData(prev => ({
+      ...prev,
+      image: imageData
+    }));
   };
 
   const handleViewProducts = (categoryId, categoryName) => {
@@ -913,6 +916,7 @@ const Categories = () => {
                   currentValue={editingCategory?.image || ''}
                   onUpload={handleImageUpload}
                   onRemove={() => handleInputChange('image', null)}
+                  uploadMode="file"
                 />
               </FormGroup>
               
