@@ -12,7 +12,7 @@ CREATE TABLE categories (
 CREATE TABLE products (
   id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,
-  price INTEGER,
+  price NUMERIC(10,2),
   category_id INTEGER,
   description VARCHAR(250),
   stock INTEGER,

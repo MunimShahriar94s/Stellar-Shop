@@ -19,6 +19,7 @@ import emailVerificationRoutes from './routes/email-verification.js';
 import settingsRoutes from './routes/settings.js';
 import categoriesRoutes from './routes/categories.js';
 import productsRoutes from './routes/products.js';
+import heroSlidesRoutes from './routes/hero-slides.js';
 
 import { uploadProduct, uploadCategory } from './middleware/upload.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -234,6 +235,7 @@ app.use('/api', adminCheckRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/products', productsRoutes);
+app.use('/api/hero-slides', heroSlidesRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

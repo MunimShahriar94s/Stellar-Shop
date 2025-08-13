@@ -32,6 +32,13 @@ export const SettingsProvider = ({ children }) => {
       productsPerPage: 12,
       enableDarkMode: false
     },
+    hero: {
+      title: 'Discover Premium Products for Your Lifestyle',
+      description: 'Explore our curated collection of high-quality products designed to enhance your everyday life. From cutting-edge electronics to stylish home decor, we have everything you need.',
+      enableSlideshow: true,
+      autoPlay: true,
+      autoPlaySpeed: 5000
+    },
     shipping: {
       freeShippingThreshold: 100,
       standardShippingRate: 10,

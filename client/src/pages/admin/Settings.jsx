@@ -4,6 +4,7 @@ import Header from '../../components/admin/Header';
 import { useOutletContext } from 'react-router-dom';
 import { useSettings } from '../../context/SettingsContext';
 import LogoUpload from '../../components/admin/LogoUpload';
+import HeroSlideUpload from '../../components/admin/HeroSlideUpload';
 
 const SettingsContainer = styled.div`
   padding: 2rem;
@@ -471,6 +472,12 @@ const Settings = (props) => {
           >
             Notifications
           </Tab>
+          <Tab 
+            active={activeTab === 'hero'} 
+            onClick={() => setActiveTab('hero')}
+          >
+            Hero Slideshow
+          </Tab>
         </TabsContainer>
         
         {/* General Settings */}
@@ -901,6 +908,74 @@ const Settings = (props) => {
                 <option value="text">Plain Text</option>
               </Select>
             </FormGroup>
+          </Card>
+        </TabContent>
+        
+        {/* Hero Slideshow Settings */}
+        <TabContent active={activeTab === 'hero'}>
+          <Card>
+            <CardTitle>Hero Slideshow Settings</CardTitle>
+            <FormGroup>
+              <Label htmlFor="heroTitle">Global Title</Label>
+              <Input 
+                type="text" 
+                id="heroTitle" 
+                value={localSettings.hero?.title || ''} 
+                onChange={(e) => handleInputChange('hero', 'title', e.target.value)} 
+                placeholder="Enter the main hero title"
+              />
+            </FormGroup>
+            
+            <FormGroup>
+              <Label htmlFor="heroDescription">Global Description</Label>
+              <TextArea 
+                id="heroDescription" 
+                value={localSettings.hero?.description || ''} 
+                onChange={(e) => handleInputChange('hero', 'description', e.target.value)} 
+                placeholder="Enter the main hero description"
+              />
+            </FormGroup>
+            
+            <FormGroup>
+              <CheckboxGroup>
+                <Checkbox 
+                  type="checkbox" 
+                  id="enableSlideshow" 
+                  checked={localSettings.hero?.enableSlideshow !== false} 
+                  onChange={(e) => handleInputChange('hero', 'enableSlideshow', e.target.checked)} 
+                />
+                <Label htmlFor="enableSlideshow">Enable Slideshow</Label>
+              </CheckboxGroup>
+            </FormGroup>
+            
+            <FormGroup>
+              <CheckboxGroup>
+                <Checkbox 
+                  type="checkbox" 
+                  id="autoPlay" 
+                  checked={localSettings.hero?.autoPlay !== false} 
+                  onChange={(e) => handleInputChange('hero', 'autoPlay', e.target.checked)} 
+                />
+                <Label htmlFor="autoPlay">Auto-play Slides</Label>
+              </CheckboxGroup>
+            </FormGroup>
+            
+            <FormGroup>
+              <Label htmlFor="autoPlaySpeed">Auto-play Speed (milliseconds)</Label>
+              <Input 
+                type="number" 
+                id="autoPlaySpeed" 
+                min="1000"
+                step="500"
+                value={localSettings.hero?.autoPlaySpeed || 5000} 
+                onChange={(e) => handleInputChange('hero', 'autoPlaySpeed', parseInt(e.target.value))} 
+              />
+            </FormGroup>
+          </Card>
+          
+          <Card>
+            <CardTitle>Manage Hero Slides</CardTitle>
+            <HeroSlideUpload />
           </Card>
         </TabContent>
         

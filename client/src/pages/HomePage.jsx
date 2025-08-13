@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import Hero from '../components/hero/Hero';
+import HeroSlideshow from '../components/hero/HeroSlideshow';
 import ProductGrid from '../components/products/ProductGrid';
 import { products as mockProducts } from '../data/products';
 import { productsAPI } from '../services/api';
@@ -263,7 +263,7 @@ const HomePage = () => {
   
   return (
     <HomeContainer>
-      <Hero />
+      <HeroSlideshow />
       
       <Section ref={sectionRef}>
         <SectionHeader>
