@@ -102,20 +102,17 @@ const ProductInfo = styled.div`
   position: absolute;
   bottom: 2rem;
   right: 2rem;
-  background: rgba(0, 0, 0, 0.8);
   color: white;
-  padding: 1.5rem;
-  border-radius: 12px;
+  text-align: right;
   max-width: 300px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 3;
   
   @media (max-width: 600px) {
     bottom: 1rem;
     right: 1rem;
     left: 1rem;
     max-width: none;
-    padding: 1rem;
+    text-align: left;
   }
 `;
 
@@ -124,19 +121,22 @@ const ProductTitle = styled.h3`
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: var(--primary-color);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 `;
 
 const ProductDescription = styled.p`
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.4;
   margin-bottom: 0.5rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 `;
 
 const ProductPrice = styled.div`
   font-size: 1.1rem;
   font-weight: 600;
   color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 `;
 
 const SlideControls = styled.div`
@@ -377,6 +377,19 @@ const HeroSlideshow = () => {
           >
             <SlideOverlay />
             
+            {/* Slide's own title and description */}
+            <HeroContent>
+              <HeroText>
+                <HeroTitle>
+                  {slide.title || settings.hero?.title || 'Discover Premium Products'}
+                </HeroTitle>
+                <HeroDescription>
+                  {slide.description || settings.hero?.description || 'Explore our curated collection of high-quality products.'}
+                </HeroDescription>
+              </HeroText>
+            </HeroContent>
+            
+            {/* Product information as text */}
             {slide.product_title && (
               <ProductInfo>
                 <ProductTitle>{slide.product_title}</ProductTitle>
