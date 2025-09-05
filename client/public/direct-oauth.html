@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Direct OAuth</title>
+  <script src="/direct-oauth.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .google {
+      background-color: #ea4335;
+      color: white;
+    }
+    /* Facebook OAuth removed */
+  </style>
+</head>
+<body>
+  <h1>Direct OAuth Login</h1>
+  <p>Click a button below to authenticate:</p>
+  
+  <div class="button-container">
+    <button class="google" onclick="window.oauthHelpers.redirectToGoogle()">Login with Google</button>
+    <!-- Facebook OAuth removed -->
+  </div>
+</body>
+</html>

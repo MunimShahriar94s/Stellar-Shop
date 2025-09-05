@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAuth Redirect</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      background-color: #f8f9fa;
+    }
+    
+    .container {
+      max-width: 500px;
+      width: 100%;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      margin-top: 0;
+      color: #333;
+    }
+    
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin: 30px 0;
+    }
+    
+    .button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+    }
+    
+    .google {
+      background-color: #ea4335;
+      color: white;
+    }
+    
+    /* Facebook OAuth removed */
+    
+    .message {
+      margin-top: 20px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>OAuth Authentication</h1>
+    <p>Click one of the buttons below to authenticate:</p>
+    
+    <div class="button-container">
+      <a href="http://localhost:3000/auth/google" class="button google">Sign in with Google</a>
+      <!-- Facebook OAuth removed -->
+    </div>
+    
+    <div class="message">
+      <p>If you're not automatically redirected, please click one of the buttons above.</p>
+    </div>
+  </div>
+  
+  <script>
+    // Function to get URL parameters
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+      var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+      var results = regex.exec(location.search);
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+    
+    // Check if we have a provider parameter
+    const provider = getUrlParameter('provider');
+    if (provider) {
+      if (provider === 'google') {
+        window.location.href = 'http://localhost:3000/auth/google';
+      }
+    }
+  </script>
+</body>
+</html>
